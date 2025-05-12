@@ -41,8 +41,9 @@ jobs:
         run: |
           docker push $REG_NAME/$REG_SERVICE:$ECR_TAG
 
-  deploy-us:
+  deploy:
     runs-on: self-hosted
+    environment: dev
     needs: build-image
     steps:
       - name: Checkout Code
