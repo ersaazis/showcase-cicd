@@ -34,12 +34,12 @@ jobs:
       
       - name: Build Docker Image
         run: |
-          echo "Building Docker image with service: $ECR_SERVICE tag: $ECR_TAG"
-          docker build --no-cache -t $REG_NAME/$REG_SERVICE:$ECR_TAG -f $DOCKER_FILE .
+          echo "Building Docker image with service: $REG_SERVICE tag: $REG_TAG"
+          docker build --no-cache -t $REG_NAME/$REG_SERVICE:$REG_TAG -f $DOCKER_FILE .
 
       - name: Push Docker Image
         run: |
-          docker push $REG_NAME/$REG_SERVICE:$ECR_TAG
+          docker push $REG_NAME/$REG_SERVICE:$REG_TAG
 
   deploy:
     runs-on: self-hosted
