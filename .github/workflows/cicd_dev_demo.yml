@@ -45,17 +45,25 @@ jobs:
         run: |
           docker push $REG_NAME/$REG_SERVICE:$REG_TAG
 
+      - name: Share Artifact Inside Workflow
+        uses: actions/upload-artifact@v4
+        with:
+          retention-days: 1
+          if-no-files-found: error
+          include-hidden-files: true
+          name: app-demo
+          path: ${{ github.workspace }}
+
   deploy:
     runs-on: self-hosted
     environment: dev
     needs: build-image
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Debug Commit
-        run: |
-          echo "Commit SHA: ${{ github.head_ref }}.${{ github.sha }}"
+      - name: Get Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-demo
+          path: app-demo
 
       - name: Initial Project
         uses: appleboy/ssh-action@master
@@ -76,7 +84,7 @@ jobs:
           host: ${{ secrets.DEMO_SSH_HOST }}
           port: ${{ secrets.DEMO_SSH_PORT }}
           username: ${{ secrets.DEMO_SSH_USER }}
-          source: "./"
+          source: "app-demo"
           target: "~/app-dev"
 
       - name: Run Docker Compose
