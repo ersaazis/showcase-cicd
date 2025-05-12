@@ -1,0 +1,43 @@
+name: PR Snyk Security Check
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+env:
+  DOCKER_FILE: Dockerfile
+
+jobs:
+  snyk-scan:
+    name: Snyk Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
+      - name: Snyk Auth
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+
+      - name: Snyk Code Scan (Application Security)
+        run: snyk code test --severity-threshold=high
+
+      - name: Snyk Open Source Dependency Scan
+        run: snyk test --severity-threshold=high
+
+      - name: Build Docker image
+        run: docker build -t local-image-for-snyk -f $DOCKER_FILE .
+
+      - name: Snyk Container Scan
+        run: snyk container test local-image-for-snyk --severity-threshold=high
+
+      - name: Fail if Snyk found issues
+        if: failure()
+        run: exit 1
