@@ -1,0 +1,42 @@
+name: PR Docker Build & Scan
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  security-events: write
+
+env:
+  REG_NAME: ghcr.io/ersaazis
+  REG_SERVICE: showcase-cicd
+  REG_TAG: pr-${{ github.event.pull_request.number }}
+  SERVICE_NAME: demo
+  DOCKER_FILE: Dockerfile
+
+jobs:
+  build-and-scan:
+    name: Build & Scan Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker Image
+        run: |
+          docker build --no-cache -t $REG_NAME/$REG_SERVICE:$REG_TAG -f $DOCKER_FILE .
+
+      - name: Install Docker Scout
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh -s -- -b /usr/local/bin
+          scout version
+
+      - name: Scan Docker Image
+        run: |
+          scout cves $REG_NAME/$REG_SERVICE:$REG_TAG --exit-code 1 --only-severity CRITICAL
