@@ -95,6 +95,6 @@ jobs:
           port: ${{ secrets.DEMO_SSH_PORT }}
           username: ${{ secrets.DEMO_SSH_USER }}
           script: |
-            docker compose -f ~/app-dev/ops/docker-compose.yaml pull
-            docker compose -f ~/app-dev/ops/docker-compose.yaml -p demo-dev up -d --build --remove-orphans
+            docker compose -f ~/app-dev/ops/docker-compose.dev.yaml pull
+            docker compose -f ~/app-dev/ops/docker-compose.dev.yaml -p demo-dev up -d --build --remove-orphans
             sudo /etc/init.d/nginx reload
