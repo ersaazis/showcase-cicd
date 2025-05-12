@@ -1,4 +1,4 @@
-name: Admin Api
+name: CICD PROD DEMO-APP
 
 on:
   push:
