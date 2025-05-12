@@ -1,9 +1,9 @@
-name: CICD DEV DEMO-APP
+name: CICD PROD DEMO-APP
 
 on:
   push:
     branches:
-      - dev
+      - main
 
 permissions:
   contents: read
@@ -12,7 +12,7 @@ permissions:
 env:
   REG_NAME: ghcr.io/ersaazis
   REG_SERVICE: showcase-cicd
-  REG_TAG: dev
+  REG_TAG: main
   SERVICE_NAME: demo
   DOCKER_FILE: Dockerfile
 
@@ -73,8 +73,8 @@ jobs:
           port: ${{ secrets.DEMO_SSH_PORT }}
           username: ${{ secrets.DEMO_SSH_USER }}
           script: |
-            mkdir -p ~/app-dev
-            rm -rf ~/app-dev/*
+            mkdir -p ~/app
+            rm -rf ~/app/*
 
       - name: Demo Project
         uses: appleboy/scp-action@master
@@ -85,7 +85,7 @@ jobs:
           port: ${{ secrets.DEMO_SSH_PORT }}
           username: ${{ secrets.DEMO_SSH_USER }}
           source: "app-demo"
-          target: "~/app-dev"
+          target: "~/app"
 
       - name: Run Docker Compose
         uses: appleboy/ssh-action@master
@@ -95,6 +95,6 @@ jobs:
           port: ${{ secrets.DEMO_SSH_PORT }}
           username: ${{ secrets.DEMO_SSH_USER }}
           script: |
-            docker compose -f ~/app-dev/ops/docker-compose.dev.yaml pull
-            docker compose -f ~/app-dev/ops/docker-compose.dev.yaml -p demo-dev up -d --build --remove-orphans
+            docker compose -f ~/app/ops/docker-compose.prod.yaml pull
+            docker compose -f ~/app/ops/docker-compose.prod.yaml -p demo-prod up -d --build --remove-orphans
             sudo /etc/init.d/nginx reload
