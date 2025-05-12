@@ -36,5 +36,6 @@ jobs:
         uses: docker/scout-action@v1
         with:
           image: $REG_NAME/$REG_SERVICE:$REG_TAG
+          docker: true
           only-severity: CRITICAL
           exit-code: true
