@@ -1,0 +1,89 @@
+name: "Release Tag Generator"
+description: "Generates a semantic version tag based on the branch and commit message"
+
+inputs:
+  service_name:
+    description: "Service name"
+    required: true
+  github_token:
+    description: "GitHub token for authentication"
+    required: true
+
+outputs:
+  env_semantic:
+    description: "Generated semantic version tag"
+    value: ${{ steps.set_version.outputs.ENV_SEMANTIC }}
+  environment:
+    description: "Resolved deployment environment"
+    value: ${{ steps.set_environment.outputs.ENVIRONMENT }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Set Environment
+      id: set_environment
+      shell: bash
+      run: |
+        ENVIRONMENT="staging"
+        if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+          ENVIRONMENT="production"
+        elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
+          ENVIRONMENT="staging"
+        fi
+        echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
+        echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_OUTPUT
+
+    - name: Generate and Set Semantic Version
+      id: set_version
+      shell: bash
+      run: |
+        echo "Fetching all tags..."
+        git fetch --tags > /dev/null 2>&1
+
+        latest_tag=$(git tag --list --sort=-v:refname "${{ env.ENVIRONMENT }}_${{ inputs.service_name }}_v*.*.*" | head -n 1)
+        if [[ -z "$latest_tag" ]]; then
+          echo "No previous tags found. Starting with v1.0.0"
+          latest_tag="${{ env.ENVIRONMENT }}_${{ inputs.service_name }}_v1.0.0"
+        fi
+
+        version=${latest_tag#*_v}
+        if [[ "$version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+          major="${BASH_REMATCH[1]}"
+          minor="${BASH_REMATCH[2]}"
+          patch="${BASH_REMATCH[3]}"
+        else
+          echo "Failed to parse version, defaulting to v1.0.0"
+          major=1
+          minor=0
+          patch=0
+        fi
+
+        PR_TITLE="${{ github.event.head_commit.message }}"
+        PR_TITLE_LOWER=$(echo "$PR_TITLE" | tr '[:upper:]' '[:lower:]')
+        if [[ "$PR_TITLE_LOWER" == *"major"* ]]; then
+          ENV_SEMANTIC="${{ env.ENVIRONMENT }}_${{ inputs.service_name }}_v$((major + 1)).0.0"
+        elif [[ "$PR_TITLE_LOWER" == *"minor"* ]]; then
+          ENV_SEMANTIC="${{ env.ENVIRONMENT }}_${{ inputs.service_name }}_v$major.$((minor + 1)).0"
+        else
+          ENV_SEMANTIC="${{ env.ENVIRONMENT }}_${{ inputs.service_name }}_v$major.$minor.$((patch + 1))"
+        fi
+
+        if [[ -z "$ENV_SEMANTIC" ]]; then
+          echo "ERROR: ENV_SEMANTIC is empty!"
+          exit 1
+        fi
+
+        echo "Final ENV_SEMANTIC: $ENV_SEMANTIC"
+        echo "ENV_SEMANTIC=$ENV_SEMANTIC" >> $GITHUB_ENV
+        echo "ENV_SEMANTIC=$ENV_SEMANTIC" >> $GITHUB_OUTPUT
+
+    - name: Create and Push New Tag
+      shell: bash
+      run: |
+        git config --global user.name "github-actions"
+        git config --global user.email "github-actions@github.com"
+        git tag -a "${{ env.ENV_SEMANTIC }}" -m "Release ${{ env.ENV_SEMANTIC }}"
+        git push origin "${{ env.ENV_SEMANTIC }}"

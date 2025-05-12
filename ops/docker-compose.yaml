@@ -1,0 +1,8 @@
+version: '3.8'
+
+services:
+  showcase-cicd:
+    image: ghcr.io/ersaazis/showcase-cicd:latest
+    ports:
+      - "8080:80"
+    restart: always

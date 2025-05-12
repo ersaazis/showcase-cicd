@@ -1,0 +1,29 @@
+name: "GitHub Release Creator"
+description: "Creates a GitHub release with the specified version tag"
+
+inputs:
+  version_tag:
+    description: "Version tag for the release"
+    required: true
+  image_name:
+    description: "Docker image name"
+    required: true
+  github_token:
+    description: "GitHub token for authentication"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install GitHub CLI
+      shell: bash
+      run: sudo apt-get update && sudo apt-get install -y gh
+
+    - name: Create GitHub Release
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
+      run: |
+        gh release create "${{ inputs.version_tag }}" \
+          --title "Release ${{ inputs.version_tag }}" \
+          --notes "IMAGE: ${{ inputs.image_name }}"
