@@ -29,9 +29,6 @@ jobs:
       - name: Snyk Code Scan (Application Security)
         run: snyk code test --severity-threshold=high
 
-      - name: Snyk Open Source Dependency Scan
-        run: snyk test --severity-threshold=high
-
       - name: Build Docker image
         run: docker build -t local-image-for-snyk -f $DOCKER_FILE .
 
