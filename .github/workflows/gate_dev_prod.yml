@@ -35,8 +35,8 @@ jobs:
       - name: Install Docker Scout
         run: |
           curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh -s -- -b /usr/local/bin
-          scout version
+          docker scout version
 
       - name: Scan Docker Image
         run: |
-          scout cves $REG_NAME/$REG_SERVICE:$REG_TAG --exit-code 1 --only-severity CRITICAL
+          docker scout cves $REG_NAME/$REG_SERVICE:$REG_TAG --exit-code 1 --only-severity CRITICAL
