@@ -3,7 +3,7 @@ name: Admin Api
 on:
   push:
     branches:
-      - demo
+      - dev
 
 env:
   REG_NAME: ghcr.io/ersaazis/
