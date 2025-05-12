@@ -6,7 +6,7 @@ on:
       - dev
 
 env:
-  REG_NAME: ghcr.io/ersaazis/
+  REG_NAME: ghcr.io/ersaazis
   REG_SERVICE: showcase-cicd
   REG_TAG: dev
   SERVICE_NAME: demo
