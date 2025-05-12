@@ -5,6 +5,11 @@ on:
     branches:
       - dev
 
+permissions:
+  id-token: write
+  contents: read 
+  packages: write
+
 env:
   REG_NAME: ghcr.io/ersaazis
   REG_SERVICE: showcase-cicd
